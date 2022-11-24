@@ -43,6 +43,7 @@ public class MainChat {
             sql += campos[i];
             if (i < campos.length - 1) {
                 // se van separando los campos por comas
+
                 sql += ", ";
             }
         }
