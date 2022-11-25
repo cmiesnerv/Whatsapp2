@@ -1,3 +1,4 @@
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
@@ -8,14 +9,14 @@ public class CRUD {
 
     public static void insertarEnTabla(Statement st, ArrayList<String> campos, ArrayList<String> datos, String tabla) {
         StringBuilder sql = new StringBuilder("INSERT INTO ad2223_cmendoza." + tabla + " (");
-        for (int i = 0; i< campos.size()-1; i++){
+        for (int i = 0; i < campos.size() - 1; i++) {
             sql.append(campos.get(i)).append(", ");
         }
-        sql.append(campos.get(campos.size()-1)).append(") VALUES (");
-        for (int i = 0; i< datos.size()-1; i++){
+        sql.append(campos.get(campos.size() - 1)).append(") VALUES (");
+        for (int i = 0; i < datos.size() - 1; i++) {
             sql.append(datos.get(i)).append(", ");
         }
-        sql.append(datos.get(datos.size()-1)).append(");");
+        sql.append(datos.get(datos.size() - 1)).append(");");
         try {
             st.executeUpdate(sql.toString());
         } catch (SQLException e) {
@@ -23,8 +24,17 @@ public class CRUD {
         }
     }
 
-    public static void recogerDatosEInsertar(Statement st, int opc) {
-        Scanner sc = new Scanner(System.in);
+    public static void borrarEnTabla(Statement st, String valorId, String campoId, String tabla) {
+        StringBuilder sql = new StringBuilder("DELETE FROM ad2223_cmendoza." + tabla + " WHERE " + campoId + " LIKE " + valorId);
+
+        try {
+            st.executeUpdate(sql.toString());
+        } catch (SQLException e) {
+            System.out.println("Hubo un error al enviar los datos a la base de datos");
+        }
+    }
+
+    public static void recogerDatosEInsertar(Statement st, int opc, String idUsuarioIniciado) {
         String tabla = "";
         boolean fallo = false;
         ArrayList<String> campos = new ArrayList<>();
@@ -32,19 +42,15 @@ public class CRUD {
         switch (opc) {
             case 1 -> {
                 campos.add("nombreUsuario");
-                campos.add("contraseña");
-                System.out.println("Introduzca un nombre de usuario");
-                datos.add("'" + sc.nextLine() + "'");
-                System.out.println("Introduzca una contraseña");
-                datos.add("'" + sc.nextLine() + "'");
+                campos.add("contrasena");
+                pedirDatos(datos, 1);
                 tabla = "Usuario";
             }
             case 2 -> {
                 campos.add("idUsuario1");
                 campos.add("idUsuario2");
                 //datos.add("idUsuario1"); BUSCAR LA FORMA DE SABER EL USUARIO QUE ESTA USANDO EL PROGRAMA
-                System.out.println("Introduzca un nombre de usuario");
-                datos.add("'" + sc.nextLine() + "'");
+                pedirDatos(datos, 2);
                 tabla = "Contactos";
             }
             case 3 -> {
@@ -53,8 +59,7 @@ public class CRUD {
                 campos.add("texto");
                 //datos.add("idEmisor"); BUSCAR LA FORMA DE SABER EL USUARIO QUE ESTA UTILIZANDO LA APP
                 //datos.add("idReceptor"); BUSCAR LA FORMA DE SABER EL USUARIO QUE RECIBE EL MENSAJE
-                System.out.println("Introduzca su mensaje:");
-                datos.add("'" + sc.nextLine() + "'");
+                pedirDatos(datos, 3);
                 tabla = "Mensaje";
             }
             default -> {
@@ -65,26 +70,20 @@ public class CRUD {
         if (!fallo) insertarEnTabla(st, campos, datos, tabla);
     }
 
-    public static ArrayList<String> pedirDatos(Statement st, int opc){
+    public static ArrayList<String> pedirDatos(ArrayList<String> datos, int opc) {
         Scanner sc = new Scanner(System.in);
-        ArrayList<String> datos = new ArrayList<>();
-        String dato ="";
-        switch (opc){
-            case 1->{
-                do{
-
-                }while (comprobarDatosIntroducidos(st, 1, "'nombreUsuario'", dato));
+        switch (opc) {
+            case 1 -> {
                 System.out.println("Introduzca un nombre de usuario");
                 datos.add("'" + sc.nextLine() + "'");
                 System.out.println("Introduzca una contraseña");
-                dato = "'" + sc.nextLine() + "'";
                 datos.add("'" + sc.nextLine() + "'");
             }
-            case 2->{
+            case 2 -> {
                 System.out.println("Introduzca un nombre de usuario");
                 datos.add("'" + sc.nextLine() + "'");
             }
-            case 3->{
+            case 3 -> {
                 System.out.println("Introduzca su mensaje:");
                 datos.add("'" + sc.nextLine() + "'");
             }
@@ -92,28 +91,41 @@ public class CRUD {
         return datos;
     }
 
-    public static boolean comprobarDatosIntroducidos(Statement st, int opc, String campo, String dato){
-        boolean datosCorrectos = false;
-
-        switch (opc){
-            case 1->{
-                datosCorrectos = !selectTablaUsuario(st, campo, dato);
+    public static String iniciarSesion(Statement st) {
+        Scanner s = new Scanner(System.in);
+        String usuario, contrasena;
+        boolean iniciarSesion = true;
+        do {
+            System.out.println("Introduce tu usuario");
+            usuario = s.nextLine();
+            System.out.println("Introduce tu contraseña");
+            contrasena = s.nextLine();
+            if (!selectTablaUsuario(st, "nombreUsuario", usuario)){
+                System.out.println("El usuario introducido no existe, inténtelo de nuevo");
+                iniciarSesion = false;
+            }else if (!selectTablaUsuario(st, "contrasena", contrasena)){
+                System.out.println("La contraseña introducido no es correcta, inténtelo de nuevo");
+                iniciarSesion = false;
             }
-            case 2->{
-                datosCorrectos = selectTablaUsuario(st, campo, dato);
-            }
-        }
-        return datosCorrectos;
+        } while (!iniciarSesion);
+        return usuario;
     }
 
-    public static boolean selectTablaUsuario(Statement st, String campo, String dato){
+    /**
+     * Método que hace un Select de la taba usuario comprobando que el registro con el dato introducido existe
+     * @param campo campo al que corresponde el dato que se introduce
+     * @param dato dato para filtrar el select
+     * @return un booleano verdadero si se encuentran registros con el dato introducido y falso si no se encuentran registros
+     */
+    public static boolean selectTablaUsuario(Statement st, String campo, String dato) {
         boolean usuarioEncontrado;
+        ResultSet rs;
         try {
-            String sql = "SELECT * FROM ad2223_cmendoza.Usuario WHERE " + campo +" LIKE "+ dato;
-            st.executeQuery(sql);
-            usuarioEncontrado = true;
+            String sql = "SELECT * FROM ad2223_cmendoza.Usuario WHERE " + campo + " LIKE " + dato;
+            rs = st.executeQuery(sql);
+            usuarioEncontrado = rs.getRow() != 0;
         } catch (SQLException e) {
-            usuarioEncontrado = false;
+            throw new RuntimeException(e);
         }
         return usuarioEncontrado;
     }

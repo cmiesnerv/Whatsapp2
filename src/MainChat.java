@@ -1,26 +1,20 @@
-import com.mysql.cj.log.Log;
-
-import java.io.*;
 import java.sql.*;
-import java.util.Scanner;
 
 public class MainChat {
-    private static String servidor = "jdbc:mysql://dns11036.phdns11.es";
-    private static Connection conexion;
-    private static Statement statement = null;
+    private static final String servidor = "jdbc:mysql://dns11036.phdns11.es";
+    private static Connection con;
+    private static Statement st = null;
 
     public static void conectar() {
         try {
-            conexion = null;
+            con = null;
             String password = "papitaFr1ta987";
             //String password = "1234";
             String usuario = "ad2223_cmendoza";
             Class.forName("com.mysql.cj.jdbc.Driver");
-            conexion = DriverManager.getConnection(servidor, usuario, password);
-            if (conexion != null) {
-                statement = conexion.createStatement();
-                System.out.println("Conexion a base de datos chat. ");
-                System.out.println(statement.toString());
+            con = DriverManager.getConnection(servidor, usuario, password);
+            if (con != null) {
+                st = con.createStatement();
 
             } else {
                 System.out.println("Conexión fallida");
@@ -32,50 +26,58 @@ public class MainChat {
 
     }
 
-    //Crea una tabla. Si la tabla existe, la borra antes de intentar volver a crearla
-    public static void crearTabla(String tabla, String[] campos) {
-        // Creamos la tabla normal
-        String drop = "DROP TABLE IF EXISTS ad2223_cmendoza." + tabla;
-        String sql = "CREATE TABLE ad2223_cmendoza." + tabla + "(";
-
-        // bucle para ir rellenando los campos
-        for (int i = 0; i < campos.length; i++) {
-            sql += campos[i];
-            if (i < campos.length - 1) {
-                // se van separando los campos por comas
-
-                sql += ", ";
+    //Crea una tabla. Antes de crear la tabla, comprueba que esta no exista mediante un select; si existe no ejecuta create table
+    public static void crearTabla(String[] info) {
+        boolean tablaExiste = true;
+        //Intenta hacer un SELECT en la tabla a crear, de forma que si esta no existe lanzará una excepción
+        try {
+            st.executeQuery("SELECT * FROM ad2223_cmendoza." + info[0]);
+            //Si la tabla no existe, la excepción lanzada es capturada por el catch, que pone el booleano a false
+        } catch (SQLException e) {
+            tablaExiste = false;
+        }
+        //Si no se ha podido realizar la consulta anterior, entra en el if
+        if (!tablaExiste){
+            StringBuilder sql = new StringBuilder("CREATE TABLE ad2223_cmendoza." + info[0] + "(");
+            //El bucle va leyendo los campos y añadiéndolos al StringBuilder
+            for (int i = 1; i < info.length; i++) {
+                sql.append(info[i]);
+                //Comprueba que el campo añadido no sea el último y, si no lo es, añade coma detrás de este
+                if (i < info.length - 1) {
+                    sql.append(", ");
+                }
+            }
+            //Al acabar de rellenar los campos cierra la consulta con ");"
+            sql.append(");");
+            //Crea la tabla
+            try {
+                st.executeUpdate(sql.toString());
+            } catch (SQLException e) {
+                e.printStackTrace();
             }
         }
-        // final de sql
-        sql += ");";
-
-        try {
-            statement.executeUpdate(drop);
-            statement.executeUpdate(sql);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
     }
 
 
 
     public static void main(String[] args) {
-
-        String camposUsuario[] = {"nombreUsuario varchar(45) PRIMARY KEY", " contraseña varchar(20)"};
-        String camposContactos[] = {"idUsuario1 varchar(45) ", "idUsuario2 varchar(45)", "bloqueado tinyint default 0",
-                "FOREIGN KEY (idUsuario1) REFERENCES Usuario(nombreUsuario) on delete cascade on update cascade",
-                "FOREIGN KEY (idUsuario2) REFERENCES Usuario(nombreUsuario) on delete cascade on update cascade",
-                "CONSTRAINT PK_Contactos PRIMARY KEY (idUsuario1, idUsuario2)"};
-        String camposMensaje[] = {"idMensaje int AUTO_INCREMENT PRIMARY KEY", "idEmisor varchar(45)", "idReceptor varchar(45)",
-                "leido tinyint default 0", "texto varchar(500)", "fechaHora timestamp DEFAULT CURRENT_TIMESTAMP",
-                "FOREIGN KEY (idEmisor) REFERENCES Usuario(nombreUsuario) on delete cascade on update cascade",
-                "FOREIGN KEY (idReceptor) REFERENCES Usuario(nombreUsuario) on delete cascade on update cascade"};
-
+        String[] infoUsuario = {"Usuario", "nombreUsuario varchar(45) PRIMARY KEY", " contrasena varchar(20)"},
+                 infoContactos = {"Contactos", "idUsuario1 varchar(45) ", "idUsuario2 varchar(45)", "bloqueado tinyint default 0",
+                         "FOREIGN KEY (idUsuario1) REFERENCES Usuario(nombreUsuario) on delete cascade on update cascade",
+                         "FOREIGN KEY (idUsuario2) REFERENCES Usuario(nombreUsuario) on delete cascade on update cascade",
+                         "CONSTRAINT PK_Contactos PRIMARY KEY (idUsuario1, idUsuario2)"},
+                infoMensaje = {"Mensaje", "idMensaje int AUTO_INCREMENT PRIMARY KEY", "idEmisor varchar(45)", "idReceptor varchar(45)",
+                        "leido tinyint default 0", "texto varchar(500)", "fechaHora timestamp DEFAULT CURRENT_TIMESTAMP",
+                        "FOREIGN KEY (idEmisor) REFERENCES Usuario(nombreUsuario) on delete cascade on update cascade",
+                        "FOREIGN KEY (idReceptor) REFERENCES Usuario(nombreUsuario) on delete cascade on update cascade"};
+        //Conecta con la base de datos
         conectar();
-
-        //crearTabla("Mensaje", camposMensaje);
+        //Crea las tablas si no existen
+        crearTabla(infoUsuario);
+        crearTabla(infoContactos);
+        crearTabla(infoMensaje);
+        //Muestra primer menu
+        Menus.menuInicio(st);
 
 
     }

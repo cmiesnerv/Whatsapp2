@@ -12,13 +12,17 @@ public class Menus {
 
     public static void menuInicio(Statement st) {
         Scanner s = new Scanner(System.in);
-        int opc = 0;
+        String idUsuarioIniciado = "";
+        int opc;
         mostrarMenuInicio();
         opc = s.nextInt();
-        if (opc == 1) {
-            CRUD.recogerDatosEInsertar(st, 1);
-        } else {
-            //Llamada a método iniciar sesión
+        switch (opc){
+            case 1 -> CRUD.recogerDatosEInsertar(st, 1, idUsuarioIniciado);
+            case 2 -> {
+                idUsuarioIniciado = CRUD.iniciarSesion(st);
+                menuPrincipal(st, idUsuarioIniciado);
+            }
+            case 3 -> System.out.println("¡Gracias por utilizar Whatsapp2!\n¡Hasta luego! ;)");
         }
     }
 
@@ -30,19 +34,20 @@ public class Menus {
                 "\n 4. Salir.");
     }
 
-    public static void menuPrincipal(Statement st) {
+    public static void menuPrincipal(Statement st, String idUsuarioIniciado) {
         Scanner s = new Scanner(System.in);
-        int opc = 0;
+        int opc;
         mostrarMenuInicio();
         opc = s.nextInt();
-        if (opc == 1) {
-            //Llamada a método para mostrar contactos
-        } else if(opc== 2){
-            //Llamada a método mostrar mensajes pendientes
-        } else {
-            CRUD.recogerDatosEInsertar(st, 2);
+        switch (opc){
+            case 1 -> System.out.println("");//Llamada a método para mostrar contactos
+            case 2 -> System.out.println("");//Llamada a método mostrar mensajes pendientes
+            case 3 -> CRUD.recogerDatosEInsertar(st, 2, idUsuarioIniciado);
+            case 4 -> System.out.println("¡Gracias por utilizar Whatsapp2!\n¡Hasta luego! ;)");
         }
     }
+
+
 
     public static void mostrarMenuContacto() {
         System.out.println("Elija una opción:" +
@@ -53,5 +58,18 @@ public class Menus {
                 "\n 5. Salir.");
     }
 
+    public static void menuContacto(Statement st) {
+        Scanner s = new Scanner(System.in);
+        int opc = 0;
+        mostrarMenuInicio();
+        opc = s.nextInt();
+        switch (opc){
+            case 1 -> System.out.println("");//Llamada a método para mostrar contactos
+            case 2 -> System.out.println(""); //Llamada a método mostrar mensajes pendientes
+            case 3 -> CRUD.recogerDatosEInsertar(st, 2);
+            case 4 -> menuPrincipal(st);
+            case 5 -> System.out.println("¡Gracias por utilizar Whatsapp2!\n¡Hasta luego! ;)");
+        }
+    }
 
 }
