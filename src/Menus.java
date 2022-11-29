@@ -6,6 +6,7 @@ import java.util.TimerTask;
 
 public class Menus {
 
+    //Aquí estan los diferentes menus que encontrara el usuario a lo largo de la app
     public static void mostrarMenuInicio() {
         System.out.println("Elija una opción:" +
                 "\n 1. Crear un nuevo usuario. " +
@@ -13,6 +14,7 @@ public class Menus {
                 "\n 3. Salir.");
     }
 
+    //Metodo que realiza la accion elegida por el usuario en el menu incio
     public static void menuInicio() {
         Scanner s = new Scanner(System.in);
         String idUsuarioIniciado = "";
@@ -50,6 +52,7 @@ public class Menus {
                 "\n 4. Salir.");
     }
 
+    //Metodo que realiza la accion elegida por el usuario en el menu principal tras iniciar sesion
     public static void menuPrincipal(String idUsuarioIniciado) {
         Scanner s = new Scanner(System.in);
         int opc;
@@ -78,6 +81,7 @@ public class Menus {
                 "\n 7. Salir.");
     }
 
+    //Metodo que realiza la accion elegida por el usuario en el menu contacto
     public static void menuContacto(String idUsuarioIniciado) {
         Scanner s = new Scanner(System.in);
         int opc, seguir = 0;

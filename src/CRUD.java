@@ -5,6 +5,8 @@ import java.util.Scanner;
 
 public class CRUD {
 
+    //Metodo para insertar datos en una tabla que elijamos
+    //Recibe por parametros los campos a modificar, los datos a añadir y la tabla donde serán añadidos
     public static void insertarEnTabla(ArrayList<String> campos, ArrayList<String> datos, String tabla) {
         StringBuilder sql = new StringBuilder("INSERT INTO ad2223_cmendoza." + tabla + " (");
         for (int i = 0; i < campos.size() - 1; i++) {
@@ -22,6 +24,8 @@ public class CRUD {
         }
     }
 
+    //Método para cambiar el estado de bloqueo de un contacto
+    //Recibe el nombre del usuario cuyo estado vamos a cambiar
     public static void bloquearDesbloquearContactos(String usuarioConectado) {
         Scanner s = new Scanner(System.in);
         StringBuilder sql = new StringBuilder("UPDATE ad2223_cmendoza.Contactos SET bloqueado=");
@@ -32,9 +36,11 @@ public class CRUD {
         idUsuario2 = s.nextLine();
 
         try {
+            //Buscamos el contacto
             ResultSet rs = MainChat.st.executeQuery("SELECT * FROM ad2223_cmendoza.Contactos WHERE idUsuario1 LIKE '" + usuarioConectado + "' AND idUsuario2 LIKE '" + idUsuario2 + "'");
 
             ResultSetMetaData md = rs.getMetaData();
+            //Comprobamos el estado de bloqueo y lo cambiamos
             while (rs.next()) {
                 bloqueado = rs.getInt(md.getColumnLabel(3));
             }
@@ -58,6 +64,8 @@ public class CRUD {
         }
     }
 
+    //Metodo para borrar un contacto de nuestra lista de contactos
+    //Recibe por parametros el usuario que se ha conectado y le pide el nombre del contacto a borrar
     public static void borrarEnTablaContactos(String usuarioConectado) {
         Scanner s = new Scanner(System.in);
         String idUsuario2;
@@ -75,18 +83,22 @@ public class CRUD {
         }
     }
 
+    //Metodo para recoger datos e insertarlos
+    //Recibe la opcion a elegir y el usuario que ha iniciado sesion
     public static void recogerDatosEInsertar(int opc, String idUsuarioIniciado) {
         String tabla = "";
         boolean fallo = false;
         ArrayList<String> campos = new ArrayList<>();
         ArrayList<String> datos = new ArrayList<>();
         switch (opc) {
+            //En la primera opcion creamos un nuevo usuario
             case 1 -> {
                 campos.add("nombreUsuario");
                 campos.add("contrasena");
                 pedirDatos(datos, 1);
                 tabla = "Usuario";
             }
+            //En la segunda opcion añadimos un usuario a nuestra lista de contactos
             case 2 -> {
                 campos.add("idUsuario1");
                 campos.add("idUsuario2");
@@ -107,6 +119,9 @@ public class CRUD {
         if (!fallo) insertarEnTabla(campos, datos, tabla);
     }
 
+    //Metodo para enviar un mensaje a un usuario
+    //Recibe el usuario que inicia la sesion
+    //Le pasamos los datos necesarios para la sentencia sql, le pedimos el mensaje al usuario y llamamos al metodo insertarEnTabla
     public static void enviarMensaje(String idUsuarioIniciado) {
         Scanner sc = new Scanner(System.in);
         ArrayList<String> campos = new ArrayList<>();
@@ -121,6 +136,9 @@ public class CRUD {
         insertarEnTabla(campos, datos, "Mensaje");
     }
 
+    //Metodo para elegir a que usuario mandarle un mensaje
+    //Comprueba si está o estás bloqueado, además de si existen los usuarios
+    //En caso de estar bloqueado alguno de los usarios o no existir, no manda el mensaje
     public static String pedirUsuarioReceptor(String idUsuarioIniciado) {
         Scanner sc = new Scanner(System.in);
         String idReceptor;
@@ -147,6 +165,8 @@ public class CRUD {
         return idReceptor;
     }
 
+    //Metodo para pedirle datos a un usario mediante scanner
+    //Recibe un array de datos y la opcion a elegir
     public static ArrayList<String> pedirDatos(ArrayList<String> datos, int opc) {
         Scanner sc = new Scanner(System.in);
         switch (opc) {
@@ -168,6 +188,10 @@ public class CRUD {
         return datos;
     }
 
+    //Metodo para inicar sesion
+    //Pide un usuario y una contraseña
+    //Comprueba si ya existe en la base de datos
+    //Devuelve el nombre de usuario si este existe
     public static String iniciarSesion() {
         Scanner s = new Scanner(System.in);
         String usuario, contrasena;
@@ -217,6 +241,7 @@ public class CRUD {
         return usuarioEncontrado;
     }
 
+    //Metodo para mostrar la lista de contactos del usuario que entra por parametro
     public static void selectMostrarTablaContactos(String usuarioConectado) {
         int bloqueado;
         String cadena = "";
