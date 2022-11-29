@@ -1,6 +1,8 @@
 import java.sql.Statement;
 import java.util.Objects;
 import java.util.Scanner;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class Menus {
 
@@ -24,7 +26,17 @@ public class Menus {
             }
             case 2 -> {
                 idUsuarioIniciado = CRUD.iniciarSesion(st);
-                if (!Objects.equals(idUsuarioIniciado, "")) menuPrincipal(st, idUsuarioIniciado);
+                if (!Objects.equals(idUsuarioIniciado, "")) {
+
+                    Timer timer = new Timer();
+                    timer.scheduleAtFixedRate(new TimerTask() {
+                        @Override public void run() {
+                            System.out.println("¡Ejecutando la primera vez en " +   "1 segundo y las demás cada 5 segundos!"); }
+                    }, 1000, 5000);
+
+
+                    menuPrincipal(st, idUsuarioIniciado);
+                }
             }
             case 3 -> System.out.println("¡Gracias por utilizar Whatsapp2!\n¡Hasta luego! ;)");
         }
@@ -58,7 +70,7 @@ public class Menus {
     public static void mostrarMenuContacto() {
         System.out.println("Elija una opción:" +
                 "\n 1. Ver lista contactos" +
-                "\n 2. Iniciar conversación. " +
+                "\n 2. Escribir mensaje " +
                 "\n 3. Bloquear/Desbloquear" +
                 "\n 4. Borrar contacto" +
                 "\n 5. Ver conversacion" +
@@ -73,7 +85,7 @@ public class Menus {
         opc = s.nextInt();
         switch (opc) {
             case 1 -> CRUD.selectMostrarTablaContactos(st, idUsuarioIniciado);
-            case 2 -> System.out.println("");//Llamada metodo iniciar conver
+            case 2 -> CRUD.enviarMensaje(st, idUsuarioIniciado);
             case 3 -> CRUD.bloquearDesbloquearContactos(st, idUsuarioIniciado);
             case 4 -> CRUD.borrarEnTablaContactos(st, idUsuarioIniciado);
             case 5 -> System.out.println("");//Llamada metodo ver conver

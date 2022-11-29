@@ -32,7 +32,7 @@ public class CRUD {
         idUsuario2 = s.nextLine();
 
         try {
-            ResultSet rs = st.executeQuery("SELECT * FROM ad2223_cmendoza.Contactos WHERE idUsuario1 LIKE '" + usuarioConectado + "' AND idUsuario2 LIKE '" + idUsuario2 +"'");
+            ResultSet rs = st.executeQuery("SELECT * FROM ad2223_cmendoza.Contactos WHERE idUsuario1 LIKE '" + usuarioConectado + "' AND idUsuario2 LIKE '" + idUsuario2 + "'");
 
             ResultSetMetaData md = rs.getMetaData();
             while (rs.next()) {
@@ -44,15 +44,15 @@ public class CRUD {
                 bloqueado = 0;
             }
 
-            if (bloqueado!=2){
-            sql.append(bloqueado);
+            if (bloqueado != 2) {
+                sql.append(bloqueado);
 
-            sql.append(" WHERE idUsuario1 LIKE '").append(usuarioConectado).append("' AND idUsuario2 LIKE '").append(idUsuario2).append("'");
+                sql.append(" WHERE idUsuario1 LIKE '").append(usuarioConectado).append("' AND idUsuario2 LIKE '").append(idUsuario2).append("'");
 
-            st.executeUpdate(sql.toString());
+                st.executeUpdate(sql.toString());
 
-            System.out.println("Se ha bloqueado al usuario " + idUsuario2 + " en tus contactos");
-            }else System.out.println("El usuario" + idUsuario2 + "no existe");
+                System.out.println("Se ha bloqueado al usuario " + idUsuario2 + " en tus contactos");
+            } else System.out.println("El usuario" + idUsuario2 + "no existe");
         } catch (SQLException e) {
             System.out.println("Hubo un error al borrar los datos de la base de datos");
         }
@@ -65,7 +65,7 @@ public class CRUD {
         System.out.println("Introduce el usuario a borrar");
         idUsuario2 = s.nextLine();
 
-        String sql = "DELETE FROM ad2223_cmendoza.Contactos WHERE idUsuario1 LIKE '" + usuarioConectado + "' AND idUsuario2 LIKE '" + idUsuario2 +"'";
+        String sql = "DELETE FROM ad2223_cmendoza.Contactos WHERE idUsuario1 LIKE '" + usuarioConectado + "' AND idUsuario2 LIKE '" + idUsuario2 + "'";
 
         try {
             st.executeUpdate(sql);
@@ -90,10 +90,10 @@ public class CRUD {
             case 2 -> {
                 campos.add("idUsuario1");
                 campos.add("idUsuario2");
-                datos.add("'"+idUsuarioIniciado+"'");
+                datos.add("'" + idUsuarioIniciado + "'");
                 pedirDatos(datos, 2);
                 tabla = "Contactos";
-                if (Objects.equals(datos.get(0), datos.get(1))){
+                if (Objects.equals(datos.get(0), datos.get(1))) {
                     System.out.println("No puedes añadirte a ti mismo como contacto ;b");
                     fallo = true;
                 }
@@ -107,20 +107,44 @@ public class CRUD {
         if (!fallo) insertarEnTabla(st, campos, datos, tabla);
     }
 
-    public static void enviarMensaje(Statement st, int opc, String idUsuarioIniciado, String idReceptor) {
+    public static void enviarMensaje(Statement st, String idUsuarioIniciado) {
         Scanner sc = new Scanner(System.in);
-        String tabla = "";
         ArrayList<String> campos = new ArrayList<>();
         ArrayList<String> datos = new ArrayList<>();
         campos.add("idEmisor");
         campos.add("idReceptor");
         campos.add("texto");
         datos.add(idUsuarioIniciado);
-        datos.add(idReceptor);
+        datos.add(pedirUsuarioReceptor(st, idUsuarioIniciado));
         System.out.println("Introduzca su mensaje:");
         datos.add("'" + sc.nextLine() + "'");
-        tabla = "Mensaje";
-        insertarEnTabla(st, campos, datos, tabla);
+        insertarEnTabla(st, campos, datos, "Mensaje");
+    }
+
+    public static String pedirUsuarioReceptor(Statement st, String idUsuarioIniciado) {
+        Scanner sc = new Scanner(System.in);
+        String idReceptor;
+        boolean contactoExiste = false;
+        ResultSet rs, rs2;
+        do {
+            System.out.println("Introduzca el usuario al que desea enviar un mensaje");
+            idReceptor = sc.nextLine();
+            try {
+                String sql = "SELECT * FROM ad2223_cmendoza.Contactos WHERE idUsuario2 LIKE '" + idReceptor + "'AND idUsuario1 LIKE '" + idUsuarioIniciado + "' AND bloqueado=0";
+                rs = st.executeQuery(sql);
+                String sql2 = "SELECT * FROM ad2223_cmendoza.Contactos WHERE idUsuario2 LIKE '" + idUsuarioIniciado + "'AND idUsuario1 LIKE '" + idReceptor + "' AND bloqueado=0";
+                rs2 = st.executeQuery(sql2);
+
+                if (!rs.next() || !rs2.next()) {
+                    contactoExiste = true;
+                }
+
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+            if (!contactoExiste) System.out.println("El contacto no existe o está bloqueado");
+        } while (!contactoExiste);
+        return idReceptor;
     }
 
     public static ArrayList<String> pedirDatos(ArrayList<String> datos, int opc) {
@@ -147,7 +171,8 @@ public class CRUD {
     public static String iniciarSesion(Statement st) {
         Scanner s = new Scanner(System.in);
         String usuario, contrasena;
-        boolean salir = false;
+        ResultSet rs;
+        boolean salir = false, contrasenabien;
         System.out.println("Introduce tu usuario");
         usuario = s.nextLine();
         if (!selectTablaUsuario(st, "nombreUsuario", usuario)) {
@@ -159,9 +184,15 @@ public class CRUD {
         while (!salir) {
             System.out.println("Introduce tu contraseña");
             contrasena = s.nextLine();
-            if (!selectTablaUsuario(st, "contrasena", contrasena)) {
-                System.out.println("La contraseña introducido no es correcta, inténtelo de nuevo");
-            }else salir = true;
+            try {
+                rs = st.executeQuery("SELECT * FROM ad2223_cmendoza.Usuario WHERE nombreUsuario LIKE '"+usuario+"' AND contrasena LIKE '" + contrasena + "'");
+                contrasenabien = rs.next();
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+            if (!contrasenabien) {
+                System.out.println("La contraseña introducida no es correcta, inténtelo de nuevo");
+            } else salir = true;
         }
         return usuario;
     }
@@ -179,9 +210,9 @@ public class CRUD {
         try {
             String sql = "SELECT * FROM ad2223_cmendoza.Usuario WHERE " + campo + " LIKE '" + dato + "'";
             rs = st.executeQuery(sql);
-            usuarioEncontrado = true;
+            usuarioEncontrado = rs.next();
         } catch (SQLException e) {
-            usuarioEncontrado = false;
+            throw new RuntimeException(e);
         }
         return usuarioEncontrado;
     }

@@ -1,4 +1,6 @@
 import java.sql.*;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class MainChat {
     private static final String servidor = "jdbc:mysql://dns11036.phdns11.es";
@@ -76,6 +78,7 @@ public class MainChat {
         crearTabla(infoUsuario);
         crearTabla(infoContactos);
         crearTabla(infoMensaje);
+
         //Muestra primer menu
         Menus.menuInicio(st);
 
