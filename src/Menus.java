@@ -13,7 +13,7 @@ public class Menus {
                 "\n 3. Salir.");
     }
 
-    public static void menuInicio(Statement st) {
+    public static void menuInicio() {
         Scanner s = new Scanner(System.in);
         String idUsuarioIniciado = "";
         int opc;
@@ -21,11 +21,11 @@ public class Menus {
         opc = s.nextInt();
         switch (opc) {
             case 1 -> {
-                CRUD.recogerDatosEInsertar(st, 1, idUsuarioIniciado);
-                menuInicio(st);
+                CRUD.recogerDatosEInsertar(1, idUsuarioIniciado);
+                menuInicio();
             }
             case 2 -> {
-                idUsuarioIniciado = CRUD.iniciarSesion(st);
+                idUsuarioIniciado = CRUD.iniciarSesion();
                 if (!Objects.equals(idUsuarioIniciado, "")) {
 
                     Timer timer = new Timer();
@@ -35,7 +35,7 @@ public class Menus {
                     }, 1000, 5000);
 
 
-                    menuPrincipal(st, idUsuarioIniciado);
+                    menuPrincipal(idUsuarioIniciado);
                 }
             }
             case 3 -> System.out.println("¡Gracias por utilizar Whatsapp2!\n¡Hasta luego! ;)");
@@ -50,17 +50,17 @@ public class Menus {
                 "\n 4. Salir.");
     }
 
-    public static void menuPrincipal(Statement st, String idUsuarioIniciado) {
+    public static void menuPrincipal(String idUsuarioIniciado) {
         Scanner s = new Scanner(System.in);
         int opc;
         mostrarMenuPrincipal();
         opc = s.nextInt();
         switch (opc) {
-            case 1 -> menuContacto(st, idUsuarioIniciado);
+            case 1 -> menuContacto(idUsuarioIniciado);
             case 2 -> System.out.println("");//Llamada a método mostrar mensajes pendientes
             case 3 -> {
-                CRUD.recogerDatosEInsertar(st, 2, idUsuarioIniciado);
-                menuPrincipal(st, idUsuarioIniciado);
+                CRUD.recogerDatosEInsertar(2, idUsuarioIniciado);
+                menuPrincipal(idUsuarioIniciado);
             }
             case 4 -> System.out.println("¡Gracias por utilizar Whatsapp2!\n¡Hasta luego! ;)");
         }
@@ -78,19 +78,19 @@ public class Menus {
                 "\n 7. Salir.");
     }
 
-    public static void menuContacto(Statement st, String idUsuarioIniciado) {
+    public static void menuContacto(String idUsuarioIniciado) {
         Scanner s = new Scanner(System.in);
         int opc, seguir = 0;
         mostrarMenuContacto();
         opc = s.nextInt();
         switch (opc) {
-            case 1 -> CRUD.selectMostrarTablaContactos(st, idUsuarioIniciado);
-            case 2 -> CRUD.enviarMensaje(st, idUsuarioIniciado);
-            case 3 -> CRUD.bloquearDesbloquearContactos(st, idUsuarioIniciado);
-            case 4 -> CRUD.borrarEnTablaContactos(st, idUsuarioIniciado);
+            case 1 -> CRUD.selectMostrarTablaContactos(idUsuarioIniciado);
+            case 2 -> CRUD.enviarMensaje(idUsuarioIniciado);
+            case 3 -> CRUD.bloquearDesbloquearContactos(idUsuarioIniciado);
+            case 4 -> CRUD.borrarEnTablaContactos(idUsuarioIniciado);
             case 5 -> System.out.println("");//Llamada metodo ver conver
             case 6 -> {
-                menuPrincipal(st, idUsuarioIniciado);
+                menuPrincipal(idUsuarioIniciado);
                 seguir = 1;
             }
             case 7 -> {
@@ -98,7 +98,7 @@ public class Menus {
                 seguir = 1;
             }
         }
-        if (seguir == 0) menuContacto(st, idUsuarioIniciado);
+        if (seguir == 0) menuContacto(idUsuarioIniciado);
     }
 
 }

@@ -5,7 +5,7 @@ import java.util.Scanner;
 
 public class CRUD {
 
-    public static void insertarEnTabla(Statement st, ArrayList<String> campos, ArrayList<String> datos, String tabla) {
+    public static void insertarEnTabla(ArrayList<String> campos, ArrayList<String> datos, String tabla) {
         StringBuilder sql = new StringBuilder("INSERT INTO ad2223_cmendoza." + tabla + " (");
         for (int i = 0; i < campos.size() - 1; i++) {
             sql.append(campos.get(i)).append(", ");
@@ -16,13 +16,13 @@ public class CRUD {
         }
         sql.append(datos.get(datos.size() - 1)).append(");");
         try {
-            st.executeUpdate(sql.toString());
+            MainChat.st.executeUpdate(sql.toString());
         } catch (SQLException e) {
             System.out.println("El registro ya existe");
         }
     }
 
-    public static void bloquearDesbloquearContactos(Statement st, String usuarioConectado) {
+    public static void bloquearDesbloquearContactos(String usuarioConectado) {
         Scanner s = new Scanner(System.in);
         StringBuilder sql = new StringBuilder("UPDATE ad2223_cmendoza.Contactos SET bloqueado=");
         String idUsuario2;
@@ -32,7 +32,7 @@ public class CRUD {
         idUsuario2 = s.nextLine();
 
         try {
-            ResultSet rs = st.executeQuery("SELECT * FROM ad2223_cmendoza.Contactos WHERE idUsuario1 LIKE '" + usuarioConectado + "' AND idUsuario2 LIKE '" + idUsuario2 + "'");
+            ResultSet rs = MainChat.st.executeQuery("SELECT * FROM ad2223_cmendoza.Contactos WHERE idUsuario1 LIKE '" + usuarioConectado + "' AND idUsuario2 LIKE '" + idUsuario2 + "'");
 
             ResultSetMetaData md = rs.getMetaData();
             while (rs.next()) {
@@ -49,7 +49,7 @@ public class CRUD {
 
                 sql.append(" WHERE idUsuario1 LIKE '").append(usuarioConectado).append("' AND idUsuario2 LIKE '").append(idUsuario2).append("'");
 
-                st.executeUpdate(sql.toString());
+                MainChat.st.executeUpdate(sql.toString());
 
                 System.out.println("Se ha bloqueado al usuario " + idUsuario2 + " en tus contactos");
             } else System.out.println("El usuario" + idUsuario2 + "no existe");
@@ -58,7 +58,7 @@ public class CRUD {
         }
     }
 
-    public static void borrarEnTablaContactos(Statement st, String usuarioConectado) {
+    public static void borrarEnTablaContactos(String usuarioConectado) {
         Scanner s = new Scanner(System.in);
         String idUsuario2;
 
@@ -68,14 +68,14 @@ public class CRUD {
         String sql = "DELETE FROM ad2223_cmendoza.Contactos WHERE idUsuario1 LIKE '" + usuarioConectado + "' AND idUsuario2 LIKE '" + idUsuario2 + "'";
 
         try {
-            st.executeUpdate(sql);
+            MainChat.st.executeUpdate(sql);
             System.out.println("Se ha borrado el usuario " + idUsuario2 + " de tu lista de contactos");
         } catch (SQLException e) {
             System.out.println("Hubo un error al borrar los datos de la base de datos");
         }
     }
 
-    public static void recogerDatosEInsertar(Statement st, int opc, String idUsuarioIniciado) {
+    public static void recogerDatosEInsertar(int opc, String idUsuarioIniciado) {
         String tabla = "";
         boolean fallo = false;
         ArrayList<String> campos = new ArrayList<>();
@@ -104,10 +104,10 @@ public class CRUD {
                 System.out.println("se ha producio un error");
             }
         }
-        if (!fallo) insertarEnTabla(st, campos, datos, tabla);
+        if (!fallo) insertarEnTabla(campos, datos, tabla);
     }
 
-    public static void enviarMensaje(Statement st, String idUsuarioIniciado) {
+    public static void enviarMensaje(String idUsuarioIniciado) {
         Scanner sc = new Scanner(System.in);
         ArrayList<String> campos = new ArrayList<>();
         ArrayList<String> datos = new ArrayList<>();
@@ -115,13 +115,13 @@ public class CRUD {
         campos.add("idReceptor");
         campos.add("texto");
         datos.add(idUsuarioIniciado);
-        datos.add(pedirUsuarioReceptor(st, idUsuarioIniciado));
+        datos.add(pedirUsuarioReceptor(idUsuarioIniciado));
         System.out.println("Introduzca su mensaje:");
         datos.add("'" + sc.nextLine() + "'");
-        insertarEnTabla(st, campos, datos, "Mensaje");
+        insertarEnTabla(campos, datos, "Mensaje");
     }
 
-    public static String pedirUsuarioReceptor(Statement st, String idUsuarioIniciado) {
+    public static String pedirUsuarioReceptor(String idUsuarioIniciado) {
         Scanner sc = new Scanner(System.in);
         String idReceptor;
         boolean contactoExiste = false;
@@ -131,9 +131,9 @@ public class CRUD {
             idReceptor = sc.nextLine();
             try {
                 String sql = "SELECT * FROM ad2223_cmendoza.Contactos WHERE idUsuario2 LIKE '" + idReceptor + "'AND idUsuario1 LIKE '" + idUsuarioIniciado + "' AND bloqueado=0";
-                rs = st.executeQuery(sql);
+                rs = MainChat.st.executeQuery(sql);
                 String sql2 = "SELECT * FROM ad2223_cmendoza.Contactos WHERE idUsuario2 LIKE '" + idUsuarioIniciado + "'AND idUsuario1 LIKE '" + idReceptor + "' AND bloqueado=0";
-                rs2 = st.executeQuery(sql2);
+                rs2 = MainChat.st.executeQuery(sql2);
 
                 if (!rs.next() || !rs2.next()) {
                     contactoExiste = true;
@@ -168,24 +168,24 @@ public class CRUD {
         return datos;
     }
 
-    public static String iniciarSesion(Statement st) {
+    public static String iniciarSesion() {
         Scanner s = new Scanner(System.in);
         String usuario, contrasena;
         ResultSet rs;
         boolean salir = false, contrasenabien;
         System.out.println("Introduce tu usuario");
         usuario = s.nextLine();
-        if (!selectTablaUsuario(st, "nombreUsuario", usuario)) {
+        if (!selectTablaUsuario("nombreUsuario", usuario)) {
             usuario = "";
             System.out.println("El usuario introducido no existe");
-            Menus.menuInicio(st);
+            Menus.menuInicio();
             salir = true;
         }
         while (!salir) {
             System.out.println("Introduce tu contraseña");
             contrasena = s.nextLine();
             try {
-                rs = st.executeQuery("SELECT * FROM ad2223_cmendoza.Usuario WHERE nombreUsuario LIKE '"+usuario+"' AND contrasena LIKE '" + contrasena + "'");
+                rs = MainChat.st.executeQuery("SELECT * FROM ad2223_cmendoza.Usuario WHERE nombreUsuario LIKE '"+usuario+"' AND contrasena LIKE '" + contrasena + "'");
                 contrasenabien = rs.next();
             } catch (SQLException e) {
                 throw new RuntimeException(e);
@@ -204,12 +204,12 @@ public class CRUD {
      * @param dato  dato para filtrar el select
      * @return un booleano verdadero si se encuentran registros con el dato introducido y falso si no se encuentran registros
      */
-    public static boolean selectTablaUsuario(Statement st, String campo, String dato) {
+    public static boolean selectTablaUsuario(String campo, String dato) {
         boolean usuarioEncontrado;
         ResultSet rs;
         try {
             String sql = "SELECT * FROM ad2223_cmendoza.Usuario WHERE " + campo + " LIKE '" + dato + "'";
-            rs = st.executeQuery(sql);
+            rs = MainChat.st.executeQuery(sql);
             usuarioEncontrado = rs.next();
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -217,14 +217,14 @@ public class CRUD {
         return usuarioEncontrado;
     }
 
-    public static void selectMostrarTablaContactos(Statement st, String usuarioConectado) {
+    public static void selectMostrarTablaContactos(String usuarioConectado) {
         int bloqueado;
         String cadena = "";
         ResultSet rs;
         System.out.println("----------LISTA DE CONTACTOS----------");
         try {
             String sql = "SELECT * FROM ad2223_cmendoza.Contactos WHERE idUsuario1 LIKE '" + usuarioConectado + "'";
-            rs = st.executeQuery(sql);
+            rs = MainChat.st.executeQuery(sql);
 
             ResultSetMetaData md = rs.getMetaData();
             while (rs.next()) {
@@ -238,22 +238,6 @@ public class CRUD {
 
         } catch (SQLException e) {
             throw new RuntimeException(e);
-        }
-    }
-
-    public static void mostrarDatos(ResultSet rs) {
-        try {
-            ResultSetMetaData md = rs.getMetaData();
-            while (rs.next()) {
-                StringBuilder cadena = new StringBuilder();
-                for (int i = 1; i <= md.getColumnCount(); i++) {
-                    cadena.append(md.getColumnLabel(i).toUpperCase()).append(": ").append(rs.getString(md.getColumnLabel(i))).append("    ");
-                }
-                System.out.println(cadena);
-            }
-        } catch (SQLException e) {
-            System.out.println("Error: Clase CentroSalud, método mostrarDatos");
-            e.printStackTrace();
         }
     }
 }

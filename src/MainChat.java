@@ -5,7 +5,7 @@ import java.util.TimerTask;
 public class MainChat {
     private static final String servidor = "jdbc:mysql://dns11036.phdns11.es";
     private static Connection con;
-    private static Statement st = null;
+    public static Statement st = null;
 
     public static void conectar() {
         try {
@@ -80,7 +80,7 @@ public class MainChat {
         crearTabla(infoMensaje);
 
         //Muestra primer menu
-        Menus.menuInicio(st);
+        Menus.menuInicio();
 
 
     }
